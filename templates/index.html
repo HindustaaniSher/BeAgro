@@ -1,0 +1,4354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BeAgro | Digital Twin for Precision Farming</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f7f2;
+            color: #1f2937;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        /* =========================
+           LAYOUT
+        ========================= */
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: #183b25;
+            color: white;
+            padding: 25px 18px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 50;
+        }
+
+        .brand {
+            font-size: 25px;
+            font-weight: bold;
+            margin-bottom: 35px;
+            padding: 0 10px;
+        }
+
+        .brand span {
+            color: #8bd17c;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 13px 14px;
+            margin-bottom: 7px;
+            border-radius: 9px;
+            color: #d7e7da;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: #2e6740;
+            color: white;
+        }
+
+        .main {
+            margin-left: 240px;
+            width: calc(100% - 240px);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            height: 75px;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        .topbar-title h1 {
+            font-size: 21px;
+            margin-bottom: 4px;
+        }
+
+        .topbar-title p {
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        .connection {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
+        .connection-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #35a853;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        /* =========================
+           SENSOR CARDS
+        ========================= */
+
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .sensor-card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        .sensor-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .sensor-label {
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .sensor-icon {
+            font-size: 22px;
+        }
+
+        .sensor-value {
+            font-size: 29px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .sensor-unit {
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        /* =========================
+           CARDS
+        ========================= */
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+            padding: 24px;
+            margin-bottom: 22px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .section-subtitle {
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: -12px;
+            margin-bottom: 20px;
+        }
+
+        /* =========================
+           FARM MAP
+        ========================= */
+
+        .farm-map-section {
+            margin-top: 10px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+
+        .section-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .section-header p {
+            margin: 5px 0 0;
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .map-legend {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+        }
+
+        .map-legend span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .legend.healthy {
+            background: #2e9d55;
+        }
+
+        .legend.warning {
+            background: #e3a426;
+        }
+
+        .legend.critical {
+            background: #d84b4b;
+        }
+
+        .farm-map {
+            position: relative;
+            min-height: 500px;
+            padding: 30px;
+            border-radius: 16px;
+            overflow: hidden;
+
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(255,255,255,0.18) 0,
+                    rgba(255,255,255,0.18) 1px,
+                    transparent 1px,
+                    transparent 35px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(255,255,255,0.18) 0,
+                    rgba(255,255,255,0.18) 1px,
+                    transparent 1px,
+                    transparent 35px
+                ),
+                #dfead5;
+
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .farm-zone {
+            position: relative;
+            z-index: 2;
+            min-height: 190px;
+            padding: 20px;
+            border-radius: 14px;
+            border: 3px solid #2e9d55;
+            background: rgba(255, 255, 255, 0.93);
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.10);
+
+            transition:
+                transform 0.2s ease,
+                border-color 0.2s ease,
+                background 0.2s ease;
+
+            cursor: pointer;
+        }
+
+        .farm-zone:hover {
+            transform: translateY(-4px);
+        }
+
+        .farm-zone.healthy {
+            border-color: #2e9d55;
+        }
+
+        .farm-zone.warning {
+            border-color: #e3a426;
+        }
+
+        .farm-zone.critical {
+            border-color: #d84b4b;
+        }
+
+        .crop-icon {
+            font-size: 38px;
+        }
+
+        .zone-health {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .zone-moisture {
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        .zone-click {
+            font-size: 10px;
+            color: #8b929b;
+            margin-top: 4px;
+        }
+
+        .farm-road {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.65);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .road-horizontal {
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 18px;
+            transform: translateY(-50%);
+        }
+
+        .road-vertical {
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 18px;
+            transform: translateX(-50%);
+        }
+
+        /* =========================
+           RECOMMENDATION
+        ========================= */
+
+        .recommendation {
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 5px solid #e3a426;
+            background: #fff9e8;
+        }
+
+        .recommendation.healthy {
+            border-left-color: #2e9d55;
+            background: #edf9f0;
+        }
+
+        .recommendation.warning {
+            border-left-color: #e3a426;
+            background: #fff9e8;
+        }
+
+        .recommendation.critical {
+            border-left-color: #d84b4b;
+            background: #fff0f0;
+        }
+
+        .recommendation h3 {
+            font-size: 17px;
+            margin-bottom: 7px;
+        }
+
+        .recommendation p {
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        /* =========================
+           ANALYTICS
+        ========================= */
+
+        .analytics-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .analytics-card {
+            padding: 20px;
+            background: #f8faf8;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .analytics-label {
+            color: #6b7280;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .analytics-value {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        /* =========================
+           ML
+        ========================= */
+
+        .ml-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            background: #f7faf7;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e1e8e2;
+        }
+
+        .ml-main {
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .ml-label {
+            color: #6b7280;
+            font-size: 12px;
+            margin-bottom: 7px;
+        }
+
+        .ml-model {
+            color: #2e6740;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        /* =========================
+           CHART
+        ========================= */
+
+        .chart-container {
+            position: relative;
+            height: 320px;
+        }
+
+        /* =========================
+           ZONE DETAILS MODAL
+        ========================= */
+
+        .zone-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            z-index: 100;
+            padding: 25px;
+            overflow-y: auto;
+        }
+
+        .zone-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zone-modal-content {
+            width: min(950px, 100%);
+            max-height: 92vh;
+            overflow-y: auto;
+            background: white;
+            border-radius: 18px;
+            padding: 28px;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+        }
+
+        .close-zone {
+            position: absolute;
+            right: 18px;
+            top: 15px;
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 50%;
+            background: #f1f3f1;
+            font-size: 24px;
+            cursor: pointer;
+            color: #374151;
+        }
+
+        .close-zone:hover {
+            background: #e5e7eb;
+        }
+
+        .zone-detail-header {
+            padding-right: 50px;
+            margin-bottom: 22px;
+        }
+
+        .zone-detail-header h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .zone-detail-header p {
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .zone-detail-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .detail-card {
+            background: #f7faf7;
+            border: 1px solid #e3e9e3;
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .detail-card-label {
+            color: #6b7280;
+            font-size: 11px;
+            margin-bottom: 7px;
+        }
+
+        .detail-card-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .detail-section {
+            margin-top: 22px;
+        }
+
+        .detail-section h3 {
+            font-size: 16px;
+            margin-bottom: 13px;
+        }
+
+        .zone-chart-container {
+            height: 280px;
+            position: relative;
+        }
+
+        .detail-recommendation {
+            padding: 17px;
+            border-radius: 10px;
+            background: #fff9e8;
+            border-left: 4px solid #e3a426;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .detail-recommendation.healthy {
+            background: #edf9f0;
+            border-left-color: #2e9d55;
+        }
+
+        .detail-recommendation.warning {
+            background: #fff9e8;
+            border-left-color: #e3a426;
+        }
+
+        .detail-recommendation.critical {
+            background: #fff0f0;
+            border-left-color: #d84b4b;
+        }
+
+        .irrigation-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .irrigation-table th,
+        .irrigation-table td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .irrigation-table th {
+            color: #6b7280;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .empty-message {
+            color: #6b7280;
+            font-size: 13px;
+            padding: 15px;
+            background: #f8faf8;
+            border-radius: 9px;
+        }
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #8b929b;
+            font-size: 11px;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 1100px) {
+            .sensor-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .farm-map {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(4, 1fr);
+            }
+
+            .road-horizontal,
+            .road-vertical {
+                display: none;
+            }
+
+            .analytics-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .zone-detail-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 800px) {
+            .sidebar {
+                width: 70px;
+                padding: 20px 8px;
+            }
+
+            .brand {
+                font-size: 0;
+                text-align: center;
+            }
+
+            .brand span {
+                font-size: 22px;
+            }
+
+            .nav-item {
+                text-align: center;
+                font-size: 0;
+                padding: 13px 5px;
+            }
+
+            .nav-item::first-letter {
+                font-size: 18px;
+            }
+
+            .main {
+                margin-left: 70px;
+                width: calc(100% - 70px);
+            }
+
+            .content {
+                padding: 18px;
+            }
+
+            .topbar {
+                padding: 0 18px;
+            }
+
+            .topbar-title h1 {
+                font-size: 17px;
+            }
+
+            .topbar-title p {
+                display: none;
+            }
+
+            .connection {
+                font-size: 11px;
+            }
+
+            .farm-map {
+                padding: 18px;
+                gap: 14px;
+            }
+
+            .farm-zone {
+                min-height: 160px;
+                padding: 12px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .sensor-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .farm-map {
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(8, 1fr);
+            }
+
+            .zone-detail-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .zone-modal {
+                padding: 10px;
+            }
+
+            .zone-modal-content {
+                padding: 20px;
+            }
+
+            .map-legend {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+
+
+<style>
+
+.farm-health-panel {
+    text-align: center;
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+.health-score {
+    font-size: 52px;
+    font-weight: 800;
+    margin: 10px 0;
+}
+
+.health-status {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.scenario-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.scenario-button {
+    padding: 14px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    cursor: pointer;
+    background: white;
+    font-weight: 600;
+}
+
+.scenario-button:hover {
+    transform: translateY(-2px);
+}
+
+.alert-item {
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.alert-critical {
+    border-left: 5px solid #d32f2f;
+    background: #ffebee;
+}
+
+.alert-warning {
+    border-left: 5px solid #f9a825;
+    background: #fff8e1;
+}
+
+.no-alerts {
+    padding: 18px;
+    border-radius: 10px;
+    background: #e8f5e9;
+    text-align: center;
+}
+
+.farm-heatmap {
+    display: grid;
+    grid-template-columns:
+        repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.heat-zone {
+    min-height: 100px;
+    padding: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    text-align: center;
+}
+
+.heat-zone:hover {
+    transform: scale(1.03);
+}
+
+.heat-zone-name {
+    font-weight: 800;
+    font-size: 17px;
+}
+
+.heat-zone-value {
+    font-size: 26px;
+    font-weight: 800;
+    margin-top: 10px;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+}
+
+.export-button {
+    padding: 13px 20px;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+@media (max-width: 700px) {
+
+    .farm-heatmap {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+}
+
+</style>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/beagro-polish.css') }}">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            🌱 Be<span>Agro</span>
+        </div>
+
+        <a href="#" class="nav-item active">🏠 Dashboard</a>
+        <a href="#farm-overview" class="nav-item">🌾 Farm Overview</a>
+        <a href="#irrigation" class="nav-item">💧 Irrigation</a>
+        <a href="#analytics" class="nav-item">📊 Analytics</a>
+        <a href="#ml" class="nav-item">🤖 ML Prediction</a>
+
+    </aside>
+
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <main class="main">
+
+        <!-- TOP BAR -->
+
+        <header class="topbar">
+
+            <div class="topbar-title">
+
+                <h1>Farm Overview</h1>
+
+                <p>
+                    Digital Twin for Precision Farming
+                </p>
+
+            </div>
+
+            <div class="connection">
+
+                <span class="connection-dot"></span>
+
+                <span id="connection-status">
+                    Connecting...
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <div class="content">
+
+
+            <!-- =========================
+                 SENSOR CARDS
+            ========================== -->
+
+            <section class="sensor-grid">
+
+                <div class="sensor-card">
+
+                    <div class="sensor-top">
+                        <span class="sensor-label">
+                            Soil Moisture
+                        </span>
+
+                        <span class="sensor-icon">
+                            💧
+                        </span>
+                    </div>
+
+                    <div
+                        class="sensor-value"
+                        id="soil-moisture"
+                    >
+                        --
+                    </div>
+
+                    <div class="sensor-unit">
+                        %
+                    </div>
+
+                </div>
+
+
+                <div class="sensor-card">
+
+                    <div class="sensor-top">
+                        <span class="sensor-label">
+                            Temperature
+                        </span>
+
+                        <span class="sensor-icon">
+                            🌡️
+                        </span>
+                    </div>
+
+                    <div
+                        class="sensor-value"
+                        id="temperature"
+                    >
+                        --
+                    </div>
+
+                    <div class="sensor-unit">
+                        °C
+                    </div>
+
+                </div>
+
+
+                <div class="sensor-card">
+
+                    <div class="sensor-top">
+                        <span class="sensor-label">
+                            Humidity
+                        </span>
+
+                        <span class="sensor-icon">
+                            💦
+                        </span>
+                    </div>
+
+                    <div
+                        class="sensor-value"
+                        id="humidity"
+                    >
+                        --
+                    </div>
+
+                    <div class="sensor-unit">
+                        %
+                    </div>
+
+                </div>
+
+
+                <div class="sensor-card">
+
+                    <div class="sensor-top">
+                        <span class="sensor-label">
+                            Crop Health
+                        </span>
+
+                        <span class="sensor-icon">
+                            🌿
+                        </span>
+                    </div>
+
+                    <div
+                        class="sensor-value"
+                        id="crop-health"
+                    >
+                        --
+                    </div>
+
+                    <div class="sensor-unit">
+                        %
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 DIGITAL TWIN
+            ========================== -->
+
+            <section
+                class="card"
+                id="farm-overview"
+            >
+
+                <div class="section-title">
+                    🌾 Digital Twin Farm
+                </div>
+
+                <div class="farm-map-section">
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <h2>
+                                Live Farm Map
+                            </h2>
+
+                            <p>
+                                Simulated real-time farm conditions
+                            </p>
+
+                        </div>
+
+                        <div class="map-legend">
+
+                            <span>
+                                <i class="legend healthy"></i>
+                                Healthy
+                            </span>
+
+                            <span>
+                                <i class="legend warning"></i>
+                                Warning
+                            </span>
+
+                            <span>
+                                <i class="legend critical"></i>
+                                Critical
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="farm-map">
+
+                        <!-- ZONE A -->
+
+                        <div
+                            class="farm-zone healthy"
+                            id="zone-1"
+                            onclick="openZoneDetails('Zone A')"
+                        >
+
+                            <div class="crop-icon">
+                                🌱
+                            </div>
+
+                            <strong>
+                                Zone A
+                            </strong>
+
+                            <span class="zone-health">
+                                --%
+                            </span>
+
+                            <small class="zone-moisture">
+                                Moisture: --%
+                            </small>
+
+                            <small class="zone-click">
+                                Click for details
+                            </small>
+
+                        </div>
+
+
+                        <!-- ZONE B -->
+
+                        <div
+                            class="farm-zone healthy"
+                            id="zone-2"
+                            onclick="openZoneDetails('Zone B')"
+                        >
+
+                            <div class="crop-icon">
+                                🌱
+                            </div>
+
+                            <strong>
+                                Zone B
+                            </strong>
+
+                            <span class="zone-health">
+                                --%
+                            </span>
+
+                            <small class="zone-moisture">
+                                Moisture: --%
+                            </small>
+
+                            <small class="zone-click">
+                                Click for details
+                            </small>
+
+                        </div>
+
+
+                        <!-- ZONE C -->
+
+                        <div
+                            class="farm-zone healthy"
+                            id="zone-3"
+                            onclick="openZoneDetails('Zone C')"
+                        >
+
+                            <div class="crop-icon">
+                                🌱
+                            </div>
+
+                            <strong>
+                                Zone C
+                            </strong>
+
+                            <span class="zone-health">
+                                --%
+                            </span>
+
+                            <small class="zone-moisture">
+                                Moisture: --%
+                            </small>
+
+                            <small class="zone-click">
+                                Click for details
+                            </small>
+
+                        </div>
+
+
+                        <!-- ZONE D -->
+
+                        <div
+                            class="farm-zone warning"
+                            id="zone-4"
+                            onclick="openZoneDetails('Zone D')"
+                        >
+
+                            <div class="crop-icon">
+                                🌾
+                            </div>
+
+                            <strong>
+                                Zone D
+                            </strong>
+
+                            <span class="zone-health">
+                                --%
+                            </span>
+
+                            <small class="zone-moisture">
+                                Moisture: --%
+                            </small>
+
+                            <small class="zone-click">
+                                Click for details
+                            </small>
+
+                        </div>
+
+
+                        <!-- ZONE E -->
+
+                        <div
+                            class="farm-zone healthy"
+                            id="zone-5"
+                            onclick="openZoneDetails('Zone E')"
+                        >
+
+                            <div class="crop-icon">
+                                🌱
+                            </div>
+
+                            <strong>
+                                Zone E
+                            </strong>
+
+                            <span class="zone-health">
+                                --%
+                            </span>
+
+                            <small class="zone-moisture">
+                                Moisture: --%
+                            </small>
+
+                            <small class="zone-click">
+                                Click for details
+                            </small>
+
+                        </div>
+
+
+                        <!-- ZONE F -->
+
+                        <div
+                            class="farm-zone warning"
+                            id="zone-6"
+                            onclick="openZoneDetails('Zone F')"
+                        >
+
+                            <div class="crop-icon">
+                                🌾
+                            </div>
+
+                            <strong>
+                                Zone F
+                            </strong>
+
+                            <span class="zone-health">
+                                --%
+                            </span>
+
+                            <small class="zone-moisture">
+                                Moisture: --%
+                            </small>
+
+                            <small class="zone-click">
+                                Click for details
+                            </small>
+
+                        </div>
+
+
+                        <!-- ZONE G -->
+
+                        <div
+                            class="farm-zone healthy"
+                            id="zone-7"
+                            onclick="openZoneDetails('Zone G')"
+                        >
+
+                            <div class="crop-icon">
+                                🌱
+                            </div>
+
+                            <strong>
+                                Zone G
+                            </strong>
+
+                            <span class="zone-health">
+                                --%
+                            </span>
+
+                            <small class="zone-moisture">
+                                Moisture: --%
+                            </small>
+
+                            <small class="zone-click">
+                                Click for details
+                            </small>
+
+                        </div>
+
+
+                        <!-- ZONE H -->
+
+                        <div
+                            class="farm-zone critical"
+                            id="zone-8"
+                            onclick="openZoneDetails('Zone H')"
+                        >
+
+                            <div class="crop-icon">
+                                🍂
+                            </div>
+
+                            <strong>
+                                Zone H
+                            </strong>
+
+                            <span class="zone-health">
+                                --%
+                            </span>
+
+                            <small class="zone-moisture">
+                                Moisture: --%
+                            </small>
+
+                            <small class="zone-click">
+                                Click for details
+                            </small>
+
+                        </div>
+
+
+                        <div class="farm-road road-horizontal"></div>
+                        <div class="farm-road road-vertical"></div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 RECOMMENDATION
+            ========================== -->
+
+            <section class="card">
+
+                <div class="section-title">
+                    🤖 Smart Recommendation
+                </div>
+
+                <div
+                    class="recommendation warning"
+                    id="recommendation-box"
+                >
+
+                    <h3 id="recommendation-title">
+                        Loading recommendation...
+                    </h3>
+
+                    <p id="recommendation-text">
+                        Analysing simulated farm conditions.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 IRRIGATION
+            ========================== -->
+
+            <section
+                class="card"
+                id="irrigation"
+            >
+
+                <div class="section-title">
+                    💧 Smart Irrigation Control
+                </div>
+
+                <div class="section-subtitle">
+                    Simulate irrigation for an individual farm zone.
+                </div>
+
+                <div class="analytics-cards">
+
+                    <div class="analytics-card">
+
+                        <div class="analytics-label">
+                            Zone A
+                        </div>
+
+                        <button
+                            onclick="irrigateZone('Zone A', this)"
+                            style="
+                                border:none;
+                                background:#2e9d55;
+                                color:white;
+                                padding:10px 16px;
+                                border-radius:8px;
+                                cursor:pointer;
+                                font-weight:bold;
+                            "
+                        >
+                            💧 Irrigate
+                        </button>
+
+                    </div>
+
+
+                    <div class="analytics-card">
+
+                        <div class="analytics-label">
+                            Zone B
+                        </div>
+
+                        <button
+                            onclick="irrigateZone('Zone B', this)"
+                            style="
+                                border:none;
+                                background:#2e9d55;
+                                color:white;
+                                padding:10px 16px;
+                                border-radius:8px;
+                                cursor:pointer;
+                                font-weight:bold;
+                            "
+                        >
+                            💧 Irrigate
+                        </button>
+
+                    </div>
+
+
+                    <div class="analytics-card">
+
+                        <div class="analytics-label">
+                            Zone C
+                        </div>
+
+                        <button
+                            onclick="irrigateZone('Zone C', this)"
+                            style="
+                                border:none;
+                                background:#2e9d55;
+                                color:white;
+                                padding:10px 16px;
+                                border-radius:8px;
+                                cursor:pointer;
+                                font-weight:bold;
+                            "
+                        >
+                            💧 Irrigate
+                        </button>
+
+                    </div>
+
+
+                    <div class="analytics-card">
+
+                        <div class="analytics-label">
+                            Zone D
+                        </div>
+
+                        <button
+                            onclick="irrigateZone('Zone D', this)"
+                            style="
+                                border:none;
+                                background:#2e9d55;
+                                color:white;
+                                padding:10px 16px;
+                                border-radius:8px;
+                                cursor:pointer;
+                                font-weight:bold;
+                            "
+                        >
+                            💧 Irrigate
+                        </button>
+
+                    </div>
+
+
+                    <div class="analytics-card">
+
+                        <div class="analytics-label">
+                            Zone E
+                        </div>
+
+                        <button
+                            onclick="irrigateZone('Zone E', this)"
+                            style="
+                                border:none;
+                                background:#2e9d55;
+                                color:white;
+                                padding:10px 16px;
+                                border-radius:8px;
+                                cursor:pointer;
+                                font-weight:bold;
+                            "
+                        >
+                            💧 Irrigate
+                        </button>
+
+                    </div>
+
+
+                    <div class="analytics-card">
+
+                        <div class="analytics-label">
+                            Zone F
+                        </div>
+
+                        <button
+                            onclick="irrigateZone('Zone F', this)"
+                            style="
+                                border:none;
+                                background:#2e9d55;
+                                color:white;
+                                padding:10px 16px;
+                                border-radius:8px;
+                                cursor:pointer;
+                                font-weight:bold;
+                            "
+                        >
+                            💧 Irrigate
+                        </button>
+
+                    </div>
+
+
+                    <div class="analytics-card">
+
+                        <div class="analytics-label">
+                            Zone G
+                        </div>
+
+                        <button
+                            onclick="irrigateZone('Zone G', this)"
+                            style="
+                                border:none;
+                                background:#2e9d55;
+                                color:white;
+                                padding:10px 16px;
+                                border-radius:8px;
+                                cursor:pointer;
+                                font-weight:bold;
+                            "
+                        >
+                            💧 Irrigate
+                        </button>
+
+                    </div>
+
+
+                    <div class="analytics-card">
+
+                        <div class="analytics-label">
+                            Zone H
+                        </div>
+
+                        <button
+                            onclick="irrigateZone('Zone H', this)"
+                            style="
+                                border:none;
+                                background:#2e9d55;
+                                color:white;
+                                padding:10px 16px;
+                                border-radius:8px;
+                                cursor:pointer;
+                                font-weight:bold;
+                            "
+                        >
+                            💧 Irrigate
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 ANALYTICS
+            ========================== -->
+
+            <section
+    class="card"
+    id="analytics"
+>
+
+    <div class="section-title">
+        📊 Advanced Farm Analytics
+    </div>
+
+    <div class="section-subtitle">
+        Performance insights generated from simulated farm data.
+    </div>
+
+
+    <div class="analytics-cards">
+
+        <div class="analytics-card">
+
+            <div class="analytics-label">
+                Total Water Used
+            </div>
+
+            <div
+                class="analytics-value"
+                id="total-water"
+            >
+                0.0 L
+            </div>
+
+        </div>
+
+
+        <div class="analytics-card">
+
+            <div class="analytics-label">
+                Irrigation Events
+            </div>
+
+            <div
+                class="analytics-value"
+                id="total-irrigations"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="analytics-card">
+
+            <div class="analytics-label">
+                Most Irrigated Zone
+            </div>
+
+            <div
+                class="analytics-value"
+                id="most-irrigated-zone"
+            >
+                None
+            </div>
+
+        </div>
+
+
+        <div class="analytics-card">
+
+            <div class="analytics-label">
+                Average Crop Health
+            </div>
+
+            <div
+                class="analytics-value"
+                id="average-health"
+            >
+                0.0%
+            </div>
+
+        </div>
+
+
+        <div class="analytics-card">
+
+            <div class="analytics-label">
+                Average Soil Moisture
+            </div>
+
+            <div
+                class="analytics-value"
+                id="average-moisture"
+            >
+                0.0%
+            </div>
+
+        </div>
+
+
+        <div class="analytics-card">
+
+            <div class="analytics-label">
+                Water Efficiency Index
+            </div>
+
+            <div
+                class="analytics-value"
+                id="water-efficiency"
+            >
+                0.0
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ZONE PERFORMANCE -->
+
+    <div class="detail-section">
+
+        <h3>
+            🏆 Zone Performance
+        </h3>
+
+        <div class="chart-container">
+
+            <canvas
+                id="zonePerformanceChart"
+            ></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- IRRIGATION ACTIVITY -->
+
+    <div class="detail-section">
+
+        <h3>
+            💧 Irrigation Activity
+        </h3>
+
+        <div class="chart-container">
+
+            <canvas
+                id="irrigationChart"
+            ></canvas>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+            <!-- =========================
+                 ML PREDICTION
+            ========================== -->
+
+            <section
+                class="card"
+                id="ml"
+            >
+
+                <div class="section-title">
+                    🤖 Machine Learning Prediction
+                </div>
+
+                <div class="ml-panel">
+
+                    <div>
+
+                        <div class="ml-label">
+                            Predicted Crop Health
+                        </div>
+
+                        <div
+                            class="ml-main"
+                            id="ml-prediction"
+                        >
+                            --
+                        </div>
+
+                    </div>
+
+                    <div>
+
+                        <div class="ml-label">
+                            Model
+                        </div>
+
+                        <div
+                            class="ml-model"
+                            id="ml-model"
+                        >
+                            Random Forest Regression
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <section class="card" id="ml-performance">
+
+    <div class="section-title">
+        🤖 ML Model Performance
+    </div>
+
+    <div class="section-subtitle">
+        Evaluation of the Random Forest model using simulated
+        historical farm data.
+    </div>
+
+    <div class="analytics-cards">
+
+        <div class="analytics-card">
+            <div class="analytics-label">
+                Model
+            </div>
+
+            <div
+                class="analytics-value"
+                id="ml-model-name"
+            >
+                Random Forest
+            </div>
+        </div>
+
+
+        <div class="analytics-card">
+
+            <div class="analytics-label">
+                Training Samples
+            </div>
+
+            <div
+                class="analytics-value"
+                id="ml-training-samples"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="analytics-card">
+
+            <div class="analytics-label">
+                Test Samples
+            </div>
+
+            <div
+                class="analytics-value"
+                id="ml-test-samples"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="analytics-card">
+
+            <div class="analytics-label">
+                MAE
+            </div>
+
+            <div
+                class="analytics-value"
+                id="ml-mae"
+            >
+                —
+            </div>
+
+        </div>
+
+
+        <div class="analytics-card">
+
+            <div class="analytics-label">
+                R² Score
+            </div>
+
+            <div
+                class="analytics-value"
+                id="ml-r2"
+            >
+                —
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="detail-section">
+
+        <h3>
+            📈 Feature Importance
+        </h3>
+
+        <div class="chart-container">
+
+            <canvas
+                id="featureImportanceChart"
+            ></canvas>
+
+        </div>
+
+    </div>
+
+
+    <div
+        class="section-subtitle"
+        style="margin-top: 15px;"
+    >
+        ⚠️ Model metrics are based on simulated data and
+        should not be interpreted as real-world agricultural
+        validation.
+    </div>
+
+</section>
+
+
+            <!-- =========================
+                 HISTORY CHART
+            ========================== -->
+
+            <section class="card">
+
+                <div class="section-title">
+                    📈 Soil Moisture History
+                </div>
+
+                <div class="section-subtitle">
+                    Historical simulated farm moisture readings.
+                </div>
+
+                <div class="chart-container">
+
+                    <canvas
+                        id="moistureChart"
+                    ></canvas>
+
+                </div>
+
+            </section>
+
+
+            <div style="
+                text-align:right;
+                color:#8b929b;
+                font-size:11px;
+                margin-top:-12px;
+                margin-bottom:5px;
+            ">
+                Last updated:
+                <span id="updated-at">--</span>
+            </div>
+
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <footer>
+
+            BeAgro uses simulated data for academic demonstration
+            purposes. This system is not intended for real-world
+            agricultural decision-making.
+
+        </footer>
+
+    
+
+<section class="card farm-health-panel">
+
+    <div class="section-title">
+        ❤️ Farm Health Score
+    </div>
+
+    <div
+        class="health-score"
+        id="farm-health-score"
+    >
+        --
+    </div>
+
+    <div
+        class="health-status"
+        id="farm-health-status"
+    >
+        Loading...
+    </div>
+
+</section>
+
+
+<section class="card">
+
+    <div class="section-title">
+        🗺️ Farm Health Heatmap
+    </div>
+
+    <div class="section-subtitle">
+        Live zone conditions based on simulated
+        soil moisture and crop health.
+    </div>
+
+    <div
+        class="farm-heatmap"
+        id="farm-heatmap"
+    >
+    </div>
+
+</section>
+
+
+<section class="card">
+
+    <div class="section-title">
+        🚨 Smart Alert Centre
+    </div>
+
+    <div
+        id="farm-alerts"
+    >
+        Loading alerts...
+    </div>
+
+</section>
+
+
+<section class="card">
+
+    <div class="section-title">
+        🌦️ Scenario Simulator
+    </div>
+
+    <div class="section-subtitle">
+        Simulate environmental conditions and observe
+        how the Digital Twin responds.
+    </div>
+
+    <div class="scenario-grid">
+
+        <button
+            class="scenario-button"
+            onclick="runScenario('normal')"
+        >
+            🌤 Normal
+        </button>
+
+        <button
+            class="scenario-button"
+            onclick="runScenario('heatwave')"
+        >
+            ☀️ Heatwave
+        </button>
+
+        <button
+            class="scenario-button"
+            onclick="runScenario('heavy_rain')"
+        >
+            🌧 Heavy Rain
+        </button>
+
+        <button
+            class="scenario-button"
+            onclick="runScenario('drought')"
+        >
+            🏜 Drought
+        </button>
+
+        <button
+            class="scenario-button"
+            onclick="runScenario('optimal')"
+        >
+            🌱 Optimal
+        </button>
+
+    </div>
+
+    <div
+        id="scenario-status"
+        style="margin-top:15px;"
+    >
+    </div>
+
+</section>
+
+
+<section class="card">
+
+    <div class="section-title">
+        📄 Farm Reports & Data
+    </div>
+
+    <div class="section-subtitle">
+        Export the current simulated farm data for
+        documentation, analysis and project presentation.
+    </div>
+
+    <div class="export-buttons">
+
+        <button
+            class="export-button"
+            onclick="downloadPDFReport()"
+        >
+            📄 Download PDF Report
+        </button>
+
+        <button
+            class="export-button"
+            onclick="downloadCSV()"
+        >
+            📊 Export CSV Data
+        </button>
+
+    </div>
+
+</section>
+
+</main>
+
+</div>
+
+
+<!-- =========================
+     ZONE DETAIL MODAL
+========================== -->
+
+<div
+    class="zone-modal"
+    id="zone-modal"
+    onclick="handleModalBackground(event)"
+>
+
+    <div
+        class="zone-modal-content"
+        onclick="event.stopPropagation()"
+    >
+
+        <button
+            class="close-zone"
+            onclick="closeZoneDetails()"
+            aria-label="Close"
+        >
+            ×
+        </button>
+
+
+        <div class="zone-detail-header">
+
+            <h2 id="detail-zone-name">
+                Zone Details
+            </h2>
+
+            <p>
+                Detailed Digital Twin information for this farm zone.
+            </p>
+
+        </div>
+
+
+        <!-- CURRENT VALUES -->
+
+        <div class="zone-detail-cards">
+
+            <div class="detail-card">
+
+                <div class="detail-card-label">
+                    Soil Moisture
+                </div>
+
+                <div
+                    class="detail-card-value"
+                    id="detail-moisture"
+                >
+                    --
+                </div>
+
+            </div>
+
+
+            <div class="detail-card">
+
+                <div class="detail-card-label">
+                    Crop Health
+                </div>
+
+                <div
+                    class="detail-card-value"
+                    id="detail-health"
+                >
+                    --
+                </div>
+
+            </div>
+
+
+            <div class="detail-card">
+
+                <div class="detail-card-label">
+                    Temperature
+                </div>
+
+                <div
+                    class="detail-card-value"
+                    id="detail-temperature"
+                >
+                    --
+                </div>
+
+            </div>
+
+
+            <div class="detail-card">
+
+                <div class="detail-card-label">
+                    Humidity
+                </div>
+
+                <div
+                    class="detail-card-value"
+                    id="detail-humidity"
+                >
+                    --
+                </div>
+
+            </div>
+
+
+            <div class="detail-card">
+
+                <div class="detail-card-label">
+                    Soil pH
+                </div>
+
+                <div
+                    class="detail-card-value"
+                    id="detail-ph"
+                >
+                    --
+                </div>
+
+            </div>
+
+
+            <div class="detail-card">
+
+                <div class="detail-card-label">
+                    Rainfall Probability
+                </div>
+
+                <div
+                    class="detail-card-value"
+                    id="detail-rainfall"
+                >
+                    --
+                </div>
+
+            </div>
+
+
+            <div class="detail-card">
+
+                <div class="detail-card-label">
+                    ML Prediction
+                </div>
+
+                <div
+                    class="detail-card-value"
+                    id="detail-ml"
+                >
+                    --
+                </div>
+
+            </div>
+
+
+            <div class="detail-card">
+
+                <div class="detail-card-label">
+                    Status
+                </div>
+
+                <div
+                    class="detail-card-value"
+                    id="detail-status"
+                >
+                    --
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ZONE HISTORY -->
+
+        <div class="detail-section">
+
+            <h3>
+                📈 Zone History
+            </h3>
+
+            <div class="zone-chart-container">
+
+                <canvas
+                    id="zoneHistoryChart"
+                ></canvas>
+
+            </div>
+
+        </div>
+
+
+        <!-- RECOMMENDATION -->
+
+        <div class="detail-section">
+
+            <h3>
+                🤖 Zone Recommendation
+            </h3>
+
+            <div
+                class="detail-recommendation"
+                id="zone-recommendation"
+            >
+                Loading...
+            </div>
+
+        </div>
+
+
+        <!-- IRRIGATION HISTORY -->
+
+        <div class="detail-section">
+
+            <h3>
+                💧 Irrigation History
+            </h3>
+
+            <div id="zone-irrigation-history">
+
+                <div class="empty-message">
+                    Loading irrigation history...
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    /* =========================
+       GLOBAL VARIABLES
+    ========================== */
+
+    let moistureChart = null;
+	let zoneHistoryChart = null;
+	let zonePerformanceChart = null;
+	let irrigationChart = null;
+	let featureImportanceChart = null;
+
+
+    /* =========================
+       ZONE STATUS
+    ========================== */
+
+    function getZoneStatus(health) {
+
+        if (health >= 70) {
+            return {
+                status: "healthy",
+                icon: "🌱"
+            };
+        }
+
+        if (health >= 45) {
+            return {
+                status: "warning",
+                icon: "🌾"
+            };
+        }
+
+        return {
+            status: "critical",
+            icon: "🍂"
+        };
+    }
+
+
+    /* =========================
+       DASHBOARD VALUES
+    ========================== */
+
+    function updateDashboardValues(data) {
+
+        document.getElementById(
+            "soil-moisture"
+        ).textContent =
+            `${data.soil_moisture.toFixed(1)}%`;
+
+
+        document.getElementById(
+            "temperature"
+        ).textContent =
+            `${data.temperature.toFixed(1)}`;
+
+
+        document.getElementById(
+            "humidity"
+        ).textContent =
+            `${data.humidity.toFixed(1)}%`;
+
+
+        document.getElementById(
+            "crop-health"
+        ).textContent =
+            `${data.crop_health.toFixed(1)}%`;
+
+
+        document.getElementById(
+            "updated-at"
+        ).textContent =
+            data.updated_at;
+    }
+
+
+    /* =========================
+       DIGITAL TWIN
+    ========================== */
+
+    function updateDigitalTwin(data) {
+
+        data.zones.forEach((zone, index) => {
+
+            const farmZone =
+                document.getElementById(
+                    `zone-${index + 1}`
+                );
+
+            if (!farmZone) {
+                return;
+            }
+
+
+            const result =
+                getZoneStatus(zone.health);
+
+
+            farmZone.className =
+                `farm-zone ${result.status}`;
+
+
+            farmZone.querySelector(
+                ".zone-health"
+            ).textContent =
+                `${zone.health.toFixed(1)}%`;
+
+
+            farmZone.querySelector(
+                ".zone-moisture"
+            ).textContent =
+                `Moisture: ${zone.moisture.toFixed(1)}%`;
+
+
+            farmZone.querySelector(
+                ".crop-icon"
+            ).textContent =
+                result.icon;
+
+
+            farmZone.onclick =
+                () => openZoneDetails(zone.name);
+
+        });
+    }
+
+
+    /* =========================
+       RECOMMENDATION
+    ========================== */
+
+    async function updateRecommendation(data) {
+
+        const title =
+            document.getElementById(
+                "recommendation-title"
+            );
+
+        const text =
+            document.getElementById(
+                "recommendation-text"
+            );
+
+        const box =
+            document.getElementById(
+                "recommendation-box"
+            );
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/recommendations"
+                );
+
+
+            const result =
+                await response.json();
+
+
+            box.className =
+                "recommendation";
+
+
+            if (result.count === 0) {
+
+                box.classList.add(
+                    "healthy"
+                );
+
+                title.textContent =
+                    "✅ Farm Conditions Stable";
+
+
+                text.textContent =
+                    "All monitored zones are currently within acceptable conditions.";
+
+                return;
+            }
+
+
+            let recommendation =
+                result.recommendations.find(
+                    item =>
+                        item.level === "critical"
+                );
+
+
+            if (!recommendation) {
+
+                recommendation =
+                    result.recommendations.find(
+                        item =>
+                            item.action === "irrigate"
+                    );
+            }
+
+
+            if (!recommendation) {
+
+                recommendation =
+                    result.recommendations[0];
+            }
+
+
+            if (
+                recommendation.level ===
+                "critical"
+            ) {
+
+                box.classList.add(
+                    "critical"
+                );
+
+                title.textContent =
+                    "🚨 Immediate Attention Required";
+
+            } else {
+
+                box.classList.add(
+                    "warning"
+                );
+
+                title.textContent =
+                    "🤖 Smart Recommendation";
+            }
+
+
+            text.textContent =
+                recommendation.message;
+
+        } catch (error) {
+
+            console.error(
+                "Recommendation error:",
+                error
+            );
+
+
+            box.className =
+                "recommendation warning";
+
+
+            title.textContent =
+                "⚠️ Recommendation Service Unavailable";
+
+
+            text.textContent =
+                "Unable to retrieve the latest recommendation.";
+
+        }
+    }
+
+
+    /* =========================
+       FARM DATA
+    ========================== */
+
+    async function loadFarmData() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/farm-data"
+                );
+
+
+            if (!response.ok) {
+                throw new Error(
+                    "Farm data request failed"
+                );
+            }
+
+
+            const data =
+                await response.json();
+
+
+            updateDashboardValues(
+                data
+            );
+
+
+            updateDigitalTwin(
+                data
+            );
+
+
+            await updateRecommendation(
+                data
+            );
+
+
+            await loadHistory();
+
+
+            document.getElementById(
+                "connection-status"
+            ).textContent =
+                "Connected";
+
+        } catch (error) {
+
+            console.error(
+                "Farm data error:",
+                error
+            );
+
+
+            document.getElementById(
+                "connection-status"
+            ).textContent =
+                "Connection Error";
+
+        }
+    }
+
+
+    /* =========================
+       ANALYTICS
+    ========================== */
+
+    async function loadAnalytics() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/analytics"
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Analytics request failed"
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        /* =========================
+           SUMMARY VALUES
+        ========================== */
+
+        document.getElementById(
+            "total-water"
+        ).textContent =
+            `${data.total_water_used_litres.toFixed(1)} L`;
+
+
+        document.getElementById(
+            "total-irrigations"
+        ).textContent =
+            data.total_irrigation_events;
+
+
+        document.getElementById(
+            "most-irrigated-zone"
+        ).textContent =
+            data.most_irrigated_zone ||
+            "None";
+
+
+        document.getElementById(
+            "average-health"
+        ).textContent =
+            `${data.average_crop_health.toFixed(1)}%`;
+
+
+        document.getElementById(
+            "average-moisture"
+        ).textContent =
+            `${data.average_soil_moisture.toFixed(1)}%`;
+
+
+        document.getElementById(
+            "water-efficiency"
+        ).textContent =
+            data.water_efficiency_index.toFixed(2);
+
+
+        /* =========================
+           ZONE PERFORMANCE CHART
+        ========================== */
+
+        const zoneCanvas =
+            document.getElementById(
+                "zonePerformanceChart"
+            );
+
+
+        if (
+            zoneCanvas &&
+            data.zone_performance
+        ) {
+
+            const zones =
+                data.zone_performance.map(
+                    item => item.zone
+                );
+
+
+            const health =
+                data.zone_performance.map(
+                    item => item.average_health
+                );
+
+
+            const moisture =
+                data.zone_performance.map(
+                    item => item.average_moisture
+                );
+
+
+            if (zonePerformanceChart) {
+
+                zonePerformanceChart.destroy();
+
+            }
+
+
+            zonePerformanceChart =
+                new Chart(
+                    zoneCanvas,
+                    {
+
+                        type: "bar",
+
+                        data: {
+
+                            labels: zones,
+
+                            datasets: [
+
+                                {
+                                    label:
+                                        "Average Crop Health (%)",
+
+                                    data: health,
+
+                                    borderWidth: 1
+                                },
+
+                                {
+                                    label:
+                                        "Average Soil Moisture (%)",
+
+                                    data: moisture,
+
+                                    borderWidth: 1
+                                }
+
+                            ]
+
+                        },
+
+                        options: {
+
+                            responsive: true,
+
+                            maintainAspectRatio:
+                                false,
+
+                            scales: {
+
+                                y: {
+
+                                    beginAtZero: true,
+
+                                    max: 100
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+                );
+
+        }
+
+
+        /* =========================
+           IRRIGATION CHART
+        ========================== */
+
+        const irrigationCanvas =
+            document.getElementById(
+                "irrigationChart"
+            );
+
+
+        if (
+            irrigationCanvas &&
+            data.irrigation_by_zone
+        ) {
+
+            const zones =
+                data.irrigation_by_zone.map(
+                    item => item.zone
+                );
+
+
+            const events =
+                data.irrigation_by_zone.map(
+                    item =>
+                        item.irrigation_count
+                );
+
+
+            if (irrigationChart) {
+
+                irrigationChart.destroy();
+
+            }
+
+
+            irrigationChart =
+                new Chart(
+                    irrigationCanvas,
+                    {
+
+                        type: "bar",
+
+                        data: {
+
+                            labels: zones,
+
+                            datasets: [
+
+                                {
+                                    label:
+                                        "Irrigation Events",
+
+                                    data: events,
+
+                                    borderWidth: 1
+                                }
+
+                            ]
+
+                        },
+
+                        options: {
+
+                            responsive: true,
+
+                            maintainAspectRatio:
+                                false,
+
+                            scales: {
+
+                                y: {
+
+                                    beginAtZero: true,
+
+                                    ticks: {
+                                        precision: 0
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+                );
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Analytics error:",
+            error
+        );
+
+    }
+}
+
+
+    /* =========================
+       IRRIGATION
+    ========================== */
+
+    async function irrigateZone(
+        zoneName,
+        button
+    ) {
+
+        if (button) {
+            button.disabled = true;
+            button.textContent =
+                "Irrigating...";
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `/api/irrigate/${encodeURIComponent(zoneName)}`,
+                    {
+                        method: "POST"
+                    }
+                );
+
+
+            const result =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    result.message ||
+                    "Irrigation failed"
+                );
+            }
+
+
+            await loadFarmData();
+            await loadAnalytics();
+            await loadMLPrediction();
+
+
+        } catch (error) {
+
+            console.error(
+                "Irrigation error:",
+                error
+            );
+
+
+            alert(
+                "Unable to irrigate this zone."
+            );
+
+        } finally {
+
+            if (button) {
+
+                button.disabled = false;
+
+                button.textContent =
+                    "💧 Irrigate";
+
+            }
+
+        }
+    }
+
+
+    /* =========================
+       ML PREDICTION
+    ========================== */
+
+    async function loadMLPrediction() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/ml-prediction"
+                );
+
+
+            const data =
+                await response.json();
+
+
+            const prediction =
+                document.getElementById(
+                    "ml-prediction"
+                );
+
+
+            if (
+                !data.success ||
+                data.prediction === null
+            ) {
+
+                prediction.textContent =
+                    "--";
+
+                document.getElementById(
+                    "ml-model"
+                ).textContent =
+                    "Waiting for historical data";
+
+                return;
+            }
+
+
+            prediction.textContent =
+                `${data.predicted_crop_health.toFixed(1)}%`;
+
+
+            document.getElementById(
+                "ml-model"
+            ).textContent =
+                data.model ||
+                "Random Forest Regression";
+
+        } catch (error) {
+
+            console.error(
+                "ML prediction error:",
+                error
+            );
+
+        }
+    }
+
+
+async function loadMLMetrics() {
+
+    try {
+
+        const response =
+            await fetch("/api/ml-metrics");
+
+        if (!response.ok) {
+            throw new Error(
+                "ML metrics request failed"
+            );
+        }
+
+        const data =
+            await response.json();
+
+
+        if (!data.success) {
+            return;
+        }
+
+
+        document.getElementById(
+            "ml-model-name"
+        ).textContent = data.model;
+
+
+        const evaluation =
+            data.evaluation;
+
+
+        if (evaluation) {
+
+            document.getElementById(
+                "ml-training-samples"
+            ).textContent =
+                evaluation.training_samples;
+
+
+            document.getElementById(
+                "ml-test-samples"
+            ).textContent =
+                evaluation.test_samples;
+
+
+            document.getElementById(
+                "ml-mae"
+            ).textContent =
+                evaluation.mae.toFixed(2);
+
+
+            document.getElementById(
+                "ml-r2"
+            ).textContent =
+                evaluation.r2_score.toFixed(3);
+
+        }
+
+
+        const canvas =
+            document.getElementById(
+                "featureImportanceChart"
+            );
+
+
+        if (
+            canvas &&
+            data.feature_importance
+        ) {
+
+            const labels =
+                data.feature_importance.map(
+                    item => item.feature
+                );
+
+
+            const values =
+                data.feature_importance.map(
+                    item => item.importance
+                );
+
+
+            if (featureImportanceChart) {
+
+                featureImportanceChart.destroy();
+
+            }
+
+
+            featureImportanceChart =
+                new Chart(
+                    canvas,
+                    {
+                        type: "bar",
+
+                        data: {
+
+                            labels: labels,
+
+                            datasets: [
+                                {
+                                    label:
+                                        "Importance",
+
+                                    data: values,
+
+                                    borderWidth: 1
+                                }
+                            ]
+
+                        },
+
+                        options: {
+
+                            responsive: true,
+
+                            maintainAspectRatio:
+                                false,
+
+                            indexAxis: "y",
+
+                            scales: {
+
+                                x: {
+
+                                    beginAtZero:
+                                        true,
+
+                                    max: 1
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+                );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "ML metrics error:",
+            error
+        );
+
+    }
+
+}
+
+
+    /* =========================
+       FARM HISTORY
+    ========================== */
+
+    async function loadHistory() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/history"
+                );
+
+
+            const data =
+                await response.json();
+
+
+            const chronological =
+                [...data].reverse();
+
+
+            const labels =
+                chronological.map(
+                    item => {
+
+                        const date =
+                            new Date(
+                                item.created_at
+                            );
+
+                        return date.toLocaleTimeString(
+                            [],
+                            {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                second: "2-digit"
+                            }
+                        );
+                    }
+                );
+
+
+            const values =
+                chronological.map(
+                    item =>
+                        item.soil_moisture
+                );
+
+
+            const canvas =
+                document.getElementById(
+                    "moistureChart"
+                );
+
+
+            if (!canvas) {
+                return;
+            }
+
+
+            if (moistureChart) {
+                moistureChart.destroy();
+            }
+
+
+            moistureChart =
+                new Chart(
+                    canvas,
+                    {
+                        type: "line",
+
+                        data: {
+                            labels: labels,
+
+                            datasets: [
+                                {
+                                    label:
+                                        "Soil Moisture (%)",
+
+                                    data: values,
+
+                                    borderWidth: 2,
+
+                                    tension: 0.35,
+
+                                    fill: false,
+
+                                    pointRadius: 3
+                                }
+                            ]
+                        },
+
+                        options: {
+
+                            responsive: true,
+
+                            maintainAspectRatio:
+                                false,
+
+                            plugins: {
+
+                                legend: {
+                                    display: true
+                                }
+
+                            },
+
+                            scales: {
+
+                                y: {
+
+                                    beginAtZero: true,
+
+                                    max: 100
+
+                                }
+
+                            }
+
+                        }
+                    }
+                );
+
+        } catch (error) {
+
+            console.error(
+                "History error:",
+                error
+            );
+
+        }
+    }
+
+
+    /* =========================
+       ZONE DETAILS
+    ========================== */
+
+    async function openZoneDetails(
+        zoneName
+    ) {
+
+        const modal =
+            document.getElementById(
+                "zone-modal"
+            );
+
+
+        modal.classList.add(
+            "show"
+        );
+
+
+        document.getElementById(
+            "detail-zone-name"
+        ).textContent =
+            `${zoneName} Details`;
+
+
+        document.getElementById(
+            "detail-moisture"
+        ).textContent =
+            "--";
+
+
+        document.getElementById(
+            "detail-health"
+        ).textContent =
+            "--";
+
+
+        document.getElementById(
+            "detail-temperature"
+        ).textContent =
+            "--";
+
+
+        document.getElementById(
+            "detail-humidity"
+        ).textContent =
+            "--";
+
+
+        document.getElementById(
+            "detail-ph"
+        ).textContent =
+            "--";
+
+
+        document.getElementById(
+            "detail-rainfall"
+        ).textContent =
+            "--";
+
+
+        document.getElementById(
+            "detail-ml"
+        ).textContent =
+            "--";
+
+
+        document.getElementById(
+            "detail-status"
+        ).textContent =
+            "Loading...";
+
+
+        document.getElementById(
+            "zone-recommendation"
+        ).textContent =
+            "Loading recommendation...";
+
+
+        document.getElementById(
+            "zone-irrigation-history"
+        ).innerHTML =
+            `
+                <div class="empty-message">
+                    Loading irrigation history...
+                </div>
+            `;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `/api/zone/${encodeURIComponent(zoneName)}`
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.message ||
+                    "Unable to load zone details"
+                );
+            }
+
+
+            /* CURRENT VALUES */
+
+            const zone =
+                data.zone;
+
+
+            document.getElementById(
+                "detail-moisture"
+            ).textContent =
+                `${zone.moisture.toFixed(1)}%`;
+
+
+            document.getElementById(
+                "detail-health"
+            ).textContent =
+                `${zone.health.toFixed(1)}%`;
+
+
+            document.getElementById(
+                "detail-temperature"
+            ).textContent =
+                `${data.temperature.toFixed(1)} °C`;
+
+
+            document.getElementById(
+                "detail-humidity"
+            ).textContent =
+                `${data.humidity.toFixed(1)}%`;
+
+
+            document.getElementById(
+                "detail-ph"
+            ).textContent =
+                data.soil_ph.toFixed(2);
+
+
+            document.getElementById(
+                "detail-rainfall"
+            ).textContent =
+                `${data.rainfall_probability.toFixed(1)}%`;
+
+
+            /* STATUS */
+
+            const status =
+                getZoneStatus(
+                    zone.health
+                );
+
+
+            document.getElementById(
+                "detail-status"
+            ).textContent =
+                status.status
+                    .charAt(0)
+                    .toUpperCase() +
+                status.status.slice(1);
+
+
+            /* ML */
+
+            if (
+                data.ml_prediction !== null &&
+                data.ml_prediction !== undefined
+            ) {
+
+                document.getElementById(
+                    "detail-ml"
+                ).textContent =
+                    `${Number(
+                        data.ml_prediction
+                    ).toFixed(1)}%`;
+
+            } else {
+
+                document.getElementById(
+                    "detail-ml"
+                ).textContent =
+                    "--";
+            }
+
+
+            /* RECOMMENDATION */
+
+            const recommendation =
+                data.recommendation;
+
+
+            const recommendationBox =
+                document.getElementById(
+                    "zone-recommendation"
+                );
+
+
+            recommendationBox.className =
+                "detail-recommendation " +
+                recommendation.level;
+
+
+            recommendationBox.textContent =
+                recommendation.message;
+
+
+            /* HISTORY */
+
+            updateZoneHistoryChart(
+                data.history
+            );
+
+
+            /* IRRIGATION HISTORY */
+
+            renderIrrigationHistory(
+                data.irrigation_history
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Zone details error:",
+                error
+            );
+
+
+            document.getElementById(
+                "zone-recommendation"
+            ).textContent =
+                "Unable to load zone details. Make sure the zone API is available.";
+
+        }
+    }
+
+
+    /* =========================
+       ZONE HISTORY CHART
+    ========================== */
+
+    function updateZoneHistoryChart(
+        history
+    ) {
+
+        const chronological =
+            [...history].reverse();
+
+
+        const labels =
+            chronological.map(
+                item => {
+
+                    const date =
+                        new Date(
+                            item.created_at
+                        );
+
+                    return date.toLocaleTimeString(
+                        [],
+                        {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit"
+                        }
+                    );
+                }
+            );
+
+
+        const moisture =
+            chronological.map(
+                item =>
+                    item.soil_moisture
+            );
+
+
+        const health =
+            chronological.map(
+                item =>
+                    item.crop_health
+            );
+
+
+        const canvas =
+            document.getElementById(
+                "zoneHistoryChart"
+            );
+
+
+        if (!canvas) {
+            return;
+        }
+
+
+        if (zoneHistoryChart) {
+            zoneHistoryChart.destroy();
+        }
+
+
+        zoneHistoryChart =
+            new Chart(
+                canvas,
+                {
+                    type: "line",
+
+                    data: {
+
+                        labels: labels,
+
+                        datasets: [
+
+                            {
+                                label:
+                                    "Soil Moisture (%)",
+
+                                data: moisture,
+
+                                borderWidth: 2,
+
+                                tension: 0.35,
+
+                                fill: false,
+
+                                pointRadius: 2
+                            },
+
+                            {
+                                label:
+                                    "Crop Health (%)",
+
+                                data: health,
+
+                                borderWidth: 2,
+
+                                tension: 0.35,
+
+                                fill: false,
+
+                                pointRadius: 2
+                            }
+
+                        ]
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio:
+                            false,
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero: true,
+
+                                max: 100
+
+                            }
+
+                        }
+
+                    }
+                }
+            );
+    }
+
+
+    /* =========================
+       IRRIGATION HISTORY
+    ========================== */
+
+    function renderIrrigationHistory(
+        history
+    ) {
+
+        const container =
+            document.getElementById(
+                "zone-irrigation-history"
+            );
+
+
+        if (
+            !history ||
+            history.length === 0
+        ) {
+
+            container.innerHTML =
+                `
+                    <div class="empty-message">
+                        No irrigation events recorded for this zone yet.
+                    </div>
+                `;
+
+            return;
+        }
+
+
+        let html =
+            `
+                <table class="irrigation-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Water Used</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+            `;
+
+
+        history.forEach(
+            event => {
+
+                html +=
+                    `
+                        <tr>
+
+                            <td>
+                                ${event.created_at}
+                            </td>
+
+                            <td>
+                                ${Number(
+                                    event.water_used_litres
+                                ).toFixed(1)} L
+                            </td>
+
+                        </tr>
+                    `;
+            }
+        );
+
+
+        html +=
+            `
+                    </tbody>
+
+                </table>
+            `;
+
+
+        container.innerHTML =
+            html;
+    }
+
+
+    /* =========================
+       CLOSE MODAL
+    ========================== */
+
+    function closeZoneDetails() {
+
+        document.getElementById(
+            "zone-modal"
+        ).classList.remove(
+            "show"
+        );
+    }
+
+
+    function handleModalBackground(
+        event
+    ) {
+
+        if (
+            event.target.id ===
+            "zone-modal"
+        ) {
+
+            closeZoneDetails();
+
+        }
+
+    }
+
+
+    document.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Escape"
+            ) {
+
+                closeZoneDetails();
+
+            }
+
+        }
+    );
+
+
+    /* =========================
+       INITIAL LOAD
+    ========================== */
+
+    loadFarmData();
+	loadAnalytics();
+	loadMLPrediction();
+	loadMLMetrics();
+
+
+    /* =========================
+       AUTOMATIC UPDATES
+    ========================== */
+
+	setInterval(loadFarmData, 10000);
+	setInterval(loadAnalytics, 10000);
+	setInterval(loadMLPrediction, 10000);
+	setInterval(loadMLMetrics, 10000);
+
+</script>
+
+
+
+<script>
+
+async function loadFarmHealth() {
+
+    try {
+
+        const response =
+            await fetch("/api/farm-health");
+
+        const data =
+            await response.json();
+
+        if (!data.success) {
+            return;
+        }
+
+        document.getElementById(
+            "farm-health-score"
+        ).textContent =
+            data.score.toFixed(1);
+
+        document.getElementById(
+            "farm-health-status"
+        ).textContent =
+            data.status;
+
+    } catch (error) {
+
+        console.error(
+            "Farm health error:",
+            error
+        );
+
+    }
+
+}
+
+
+function getHeatClass(moisture, health) {
+
+    if (
+        moisture < 30 ||
+        health < 50
+    ) {
+        return "alert-critical";
+    }
+
+    if (
+        moisture < 45 ||
+        health < 65
+    ) {
+        return "alert-warning";
+    }
+
+    return "no-alerts";
+}
+
+
+function renderFarmHeatmap(zones) {
+
+    const container =
+        document.getElementById(
+            "farm-heatmap"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = "";
+
+    zones.forEach(zone => {
+
+        const element =
+            document.createElement("div");
+
+        element.className =
+            "heat-zone " +
+            getHeatClass(
+                zone.moisture,
+                zone.health
+            );
+
+        element.innerHTML = `
+            <div class="heat-zone-name">
+                ${zone.name}
+            </div>
+
+            <div class="heat-zone-value">
+                ${zone.moisture.toFixed(0)}%
+            </div>
+
+            <div>
+                Health: ${zone.health.toFixed(0)}%
+            </div>
+        `;
+
+        element.onclick = function() {
+            openZoneDetails(zone.name);
+        };
+
+        container.appendChild(element);
+
+    });
+
+}
+
+
+async function loadFarmHeatmap() {
+
+    try {
+
+        const response =
+            await fetch("/api/farm-data");
+
+        const data =
+            await response.json();
+
+        if (data.zones) {
+            renderFarmHeatmap(data.zones);
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Heatmap error:",
+            error
+        );
+
+    }
+
+}
+
+
+async function loadFarmAlerts() {
+
+    try {
+
+        const response =
+            await fetch("/api/alerts");
+
+        const data =
+            await response.json();
+
+        const container =
+            document.getElementById(
+                "farm-alerts"
+            );
+
+        if (!container) {
+            return;
+        }
+
+        if (
+            !data.alerts ||
+            data.alerts.length === 0
+        ) {
+
+            container.innerHTML = `
+                <div class="no-alerts">
+                    🟢 No active farm alerts.
+                    All monitored zones are stable.
+                </div>
+            `;
+
+            return;
+        }
+
+        container.innerHTML = "";
+
+        data.alerts.forEach(alert => {
+
+            const item =
+                document.createElement("div");
+
+            item.className =
+                "alert-item " +
+                (
+                    alert.level === "critical"
+                        ? "alert-critical"
+                        : "alert-warning"
+                );
+
+            item.innerHTML = `
+                <strong>
+                    ${alert.level === "critical"
+                        ? "🔴"
+                        : "🟡"
+                    }
+                    ${alert.zone}
+                </strong>
+
+                <br>
+
+                ${alert.message}
+
+                <br>
+
+                <strong>
+                    Action:
+                </strong>
+
+                ${alert.action}
+            `;
+
+            container.appendChild(item);
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Alert error:",
+            error
+        );
+
+    }
+
+}
+
+
+async function runScenario(scenario) {
+
+    const status =
+        document.getElementById(
+            "scenario-status"
+        );
+
+    if (status) {
+        status.textContent =
+            "⏳ Running scenario...";
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/scenario",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        scenario: scenario
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!data.success) {
+            throw new Error(
+                data.message ||
+                "Scenario failed"
+            );
+        }
+
+        if (status) {
+
+            status.textContent =
+                "✅ Scenario applied: " +
+                scenario.replace(
+                    "_",
+                    " "
+                );
+        }
+
+        await loadFarmData();
+        await loadFarmHealth();
+        await loadFarmHeatmap();
+        await loadFarmAlerts();
+        await loadAnalytics();
+        await loadMLPrediction();
+
+    } catch (error) {
+
+        console.error(
+            "Scenario error:",
+            error
+        );
+
+        if (status) {
+            status.textContent =
+                "❌ Unable to run scenario.";
+        }
+
+    }
+
+}
+
+
+function downloadPDFReport() {
+
+    window.location.href =
+        "/api/export/pdf";
+
+}
+
+
+function downloadCSV() {
+
+    window.location.href =
+        "/api/export/csv";
+
+}
+
+
+loadFarmHealth();
+loadFarmHeatmap();
+loadFarmAlerts();
+
+setInterval(
+    loadFarmHealth,
+    10000
+);
+
+setInterval(
+    loadFarmHeatmap,
+    10000
+);
+
+setInterval(
+    loadFarmAlerts,
+    10000
+);
+
+</script>
+
+
+<script>
+(function () {
+    "use strict";
+
+    function addSimulatedBadge() {
+        if (document.querySelector(".beagro-simulated-badge")) {
+            return;
+        }
+
+        const badge = document.createElement("div");
+        badge.className = "beagro-simulated-badge";
+        badge.innerHTML = `
+            <span class="beagro-simulated-dot"></span>
+            SIMULATED DATA
+        `;
+
+        const topbar =
+            document.querySelector(".topbar") ||
+            document.querySelector("header");
+
+        if (topbar) {
+            topbar.appendChild(badge);
+        } else {
+            badge.style.position = "fixed";
+            badge.style.top = "14px";
+            badge.style.right = "18px";
+            badge.style.zIndex = "9999";
+            document.body.appendChild(badge);
+        }
+    }
+
+    function enhanceButtons() {
+        document.querySelectorAll("button").forEach(function (button) {
+            if (!button.getAttribute("title")) {
+                const text = button.textContent.trim();
+                if (text) {
+                    button.setAttribute("title", text);
+                }
+            }
+        });
+    }
+
+    function addLiveIndicator() {
+        if (document.querySelector(".beagro-live-indicator")) {
+            return;
+        }
+
+        const indicator = document.createElement("div");
+        indicator.className = "beagro-live-indicator";
+        indicator.innerHTML = `
+            <span style="
+                display:inline-block;
+                width:7px;
+                height:7px;
+                border-radius:50%;
+                background:#2e7d32;
+                box-shadow:0 0 0 4px rgba(46,125,50,.10);
+            "></span>
+            <span>Digital Twin Live</span>
+        `;
+
+        indicator.style.cssText = `
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:7px 11px;
+            border-radius:999px;
+            background:rgba(46,125,50,.08);
+            border:1px solid rgba(46,125,50,.16);
+            color:#28612d;
+            font-size:11px;
+            font-weight:800;
+            white-space:nowrap;
+        `;
+
+        const topbar =
+            document.querySelector(".topbar") ||
+            document.querySelector("header");
+
+        if (topbar) {
+            topbar.appendChild(indicator);
+        }
+    }
+
+    function initialise() {
+        addSimulatedBadge();
+        addLiveIndicator();
+        enhanceButtons();
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initialise);
+    } else {
+        initialise();
+    }
+})();
+</script>
+
+</body>
+</html>

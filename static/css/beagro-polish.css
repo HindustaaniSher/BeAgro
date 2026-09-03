@@ -1,0 +1,354 @@
+
+/* =========================================================
+   BEAGRO STEP 22 — PROFESSIONAL UI POLISH
+   ========================================================= */
+
+:root {
+    --bg-main: #f4f7f5;
+    --bg-card: rgba(255, 255, 255, 0.92);
+    --border: rgba(20, 45, 30, 0.09);
+    --text-main: #17231b;
+    --text-muted: #68756c;
+    --shadow-soft: 0 10px 30px rgba(20, 45, 30, 0.07);
+    --shadow-hover: 0 16px 38px rgba(20, 45, 30, 0.12);
+    --radius: 18px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background:
+        radial-gradient(circle at 10% 0%, rgba(76, 175, 80, 0.07), transparent 28%),
+        radial-gradient(circle at 90% 10%, rgba(33, 150, 243, 0.05), transparent 25%),
+        var(--bg-main) !important;
+    color: var(--text-main);
+}
+
+/* ---------- Global cards ---------- */
+
+.card,
+.sensor-card,
+.analytics-card,
+.stat-card,
+.panel,
+.dashboard-card,
+.metric-card {
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: var(--shadow-soft) !important;
+    transition:
+        transform 0.22s ease,
+        box-shadow 0.22s ease,
+        border-color 0.22s ease !important;
+}
+
+.card:hover,
+.sensor-card:hover,
+.analytics-card:hover,
+.stat-card:hover,
+.panel:hover,
+.dashboard-card:hover,
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover) !important;
+}
+
+/* ---------- Headings ---------- */
+
+h1,
+h2,
+h3 {
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+}
+
+h2 {
+    margin-bottom: 6px;
+}
+
+/* ---------- Top bar ---------- */
+
+.topbar {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.86) !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+
+/* ---------- Simulated data badge ---------- */
+
+.beagro-simulated-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(255, 193, 7, 0.12);
+    border: 1px solid rgba(255, 193, 7, 0.28);
+    color: #7a5b00;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.beagro-simulated-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #f0ad00;
+    box-shadow: 0 0 0 4px rgba(240, 173, 0, 0.12);
+}
+
+/* ---------- Section headers ---------- */
+
+.beagro-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 26px 0 14px;
+}
+
+.beagro-section-heading .section-title {
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.beagro-section-heading .section-subtitle {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+/* ---------- Sensor cards ---------- */
+
+.sensor-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.sensor-card::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: currentColor;
+    opacity: 0.18;
+}
+
+.sensor-card .value,
+.sensor-card .metric-value,
+.sensor-card strong {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Buttons ---------- */
+
+button,
+.btn,
+a.button {
+    border-radius: 11px !important;
+    font-weight: 700 !important;
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        opacity 0.18s ease !important;
+}
+
+button:hover,
+.btn:hover,
+a.button:hover {
+    transform: translateY(-1px);
+}
+
+button:active,
+.btn:active,
+a.button:active {
+    transform: translateY(0);
+}
+
+/* ---------- Farm map ---------- */
+
+#farmMap,
+.digital-twin-map,
+.map-container {
+    border-radius: 20px !important;
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border);
+}
+
+.zone {
+    transition:
+        transform 0.18s ease,
+        filter 0.18s ease,
+        opacity 0.18s ease;
+    cursor: pointer;
+}
+
+.zone:hover {
+    transform: scale(1.025);
+    filter: brightness(1.04);
+}
+
+/* ---------- Health score ---------- */
+
+#farmHealthScore {
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+}
+
+/* ---------- Alert centre ---------- */
+
+.beagro-alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px 14px;
+    margin-bottom: 9px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: rgba(255,255,255,0.72);
+}
+
+.beagro-alert-icon {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    flex: 0 0 30px;
+    font-size: 14px;
+}
+
+.beagro-alert-content {
+    min-width: 0;
+}
+
+.beagro-alert-zone {
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.beagro-alert-message {
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.45;
+    margin-top: 3px;
+}
+
+/* ---------- Scenario controls ---------- */
+
+.beagro-scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.beagro-scenario-grid button {
+    min-height: 46px;
+}
+
+.beagro-scenario-grid button.active {
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.13);
+}
+
+/* ---------- Export controls ---------- */
+
+.beagro-export-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.beagro-export-row button {
+    min-height: 42px;
+}
+
+/* ---------- Tables ---------- */
+
+table {
+    border-collapse: separate !important;
+    border-spacing: 0;
+    overflow: hidden;
+    border-radius: 14px;
+}
+
+th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+}
+
+td,
+th {
+    padding: 11px 12px;
+}
+
+/* ---------- Modal ---------- */
+
+.modal,
+.modal-content {
+    border-radius: 20px !important;
+}
+
+/* ---------- Scrollbars ---------- */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 99px;
+    background: rgba(70, 90, 75, 0.25);
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1100px) {
+    .beagro-scenario-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .beagro-section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .beagro-scenario-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .beagro-simulated-badge {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .beagro-scenario-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .beagro-export-row {
+        flex-direction: column;
+    }
+
+    .beagro-export-row button {
+        width: 100%;
+    }
+}
