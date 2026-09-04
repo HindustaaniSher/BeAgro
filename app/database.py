@@ -1,18 +1,21 @@
 import sqlite3
 from pathlib import Path
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATABASE_PATH = BASE_DIR / "data" / "beagro.db"
+DATA_DIR = BASE_DIR / "data"
+DATABASE_PATH = DATA_DIR / "beagro.db"
 
 
 def get_connection():
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+
     connection = sqlite3.connect(DATABASE_PATH)
     connection.row_factory = sqlite3.Row
     return connection
 
 
 def init_db():
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     connection = get_connection()
 
