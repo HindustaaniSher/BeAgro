@@ -29,7 +29,7 @@ from app.ml_model import (
 
 
 app = Flask(__name__)
-
+init_db()
 simulation = FarmSimulation()
 
 
