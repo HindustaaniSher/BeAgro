@@ -92,4 +92,4 @@ http://127.0.0.1:5000
 ## Disclaimer!
 
 BeAgro is an academic demonstration project that uses simulated agricultural data.  
-Its recommendations are not a replacement for professional agricultural advice or real-world field measurements.
+Its recommendations are not a replacement for professional agricultural advice or real-world field measurements...
