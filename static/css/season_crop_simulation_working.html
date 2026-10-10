@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BeAgro — Season & Crop Simulation</title>
+<style>
+:root{--green:#1f7a4d;--ink:#17251d;--muted:#68766d;--line:#dce7df;--bg:#f5f8f5;--white:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1180px;margin:auto;padding:28px 18px 48px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:24px}.eyebrow{color:var(--green);font-weight:800;text-transform:uppercase;letter-spacing:.12em;font-size:12px}.top h1{font-size:clamp(27px,4vw,38px);line-height:1.12;margin:5px 0 8px}.sub{color:var(--muted);max-width:740px;margin:0}.pill{background:#e8f5ec;color:var(--green);padding:8px 12px;border-radius:999px;font-weight:750;font-size:12px}
+.layout{display:grid;grid-template-columns:minmax(280px,.9fr) minmax(0,1.35fr);gap:18px;align-items:start}.panel{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 6px 24px #193b2410}.panel h2{font-size:18px;margin:0 0 4px}.hint{font-size:13px;color:var(--muted);margin:0 0 20px}.field{margin:0 0 17px}.field label{display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:13px;margin-bottom:7px}.field small{color:var(--muted);font-weight:500}select,input[type=number]{width:100%;padding:11px 12px;border:1px solid #ccd9d0;border-radius:10px;background:white;color:var(--ink);font:inherit;outline:none}select:focus,input:focus{border-color:var(--green);box-shadow:0 0 0 3px #1f7a4d18}input[type=range]{width:100%;accent-color:var(--green)}.range-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:2px}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn{border:0;border-radius:11px;background:var(--green);color:white;font-weight:800;font:inherit;padding:12px 16px;width:100%;cursor:pointer;transition:background .2s,transform .2s}.btn:hover{background:#17643e}.btn:active{transform:scale(.99)}.note{font-size:12px;color:var(--muted);margin:13px 0 0}
+.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.metric{border:1px solid var(--line);border-radius:14px;padding:16px;background:white}.metric .label{font-size:12px;color:var(--muted);font-weight:700}.metric .value{font-size:26px;font-weight:850;letter-spacing:-.03em;margin:5px 0 2px}.metric .desc{font-size:12px;color:var(--muted)}.metric.green{background:linear-gradient(145deg,#f0faf2,#fff)}.status{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;background:#fff2dc;color:#a85b08;font-size:12px;font-weight:800}.status.good{background:#e8f5ec;color:var(--green)}.status.bad{background:#ffeded;color:#b83c3c}
+.result-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}.result-head p{margin:4px 0 0;color:var(--muted);font-size:13px}.barbox{margin-top:17px;padding:16px;border:1px solid var(--line);border-radius:14px}.bar-title{display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:750;margin-bottom:7px}.track{height:9px;background:#e8eee9;border-radius:99px;overflow:hidden}.fill{height:100%;width:50%;background:var(--green);border-radius:99px;transition:width .25s}.fill.water{background:#2e8ac7}.fill.risk{background:#d58a2c}.recommend{margin-top:16px;background:#f0f8f2;border:1px solid #d6eadb;border-radius:14px;padding:16px}.recommend h3{margin:0 0 8px;font-size:15px}.recommend ul{padding-left:19px;margin:0}.recommend li{margin:5px 0}.scenario{margin-top:16px;border-top:1px solid var(--line);padding-top:15px}.scenario h3{font-size:15px;margin:0 0 8px}.foot{font-size:12px;color:var(--muted);margin-top:18px}.flash{animation:flash .35s ease}@keyframes flash{50%{box-shadow:0 0 0 4px #1f7a4d35}} 
+@media(max-width:780px){.layout{grid-template-columns:1fr}.top{flex-direction:column}.panel{padding:18px}.pill{align-self:flex-start}}@media(max-width:400px){.two,.metrics{grid-template-columns:1fr}.wrap{padding:20px 12px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top"><div><div class="eyebrow">BeAgro · Digital Twin</div><h1>Season & Crop Simulation</h1><p class="sub">Explore how crops may respond to seasonal and environmental conditions. Change the inputs and run a simulation to see estimated crop health, water demand, and risk.</p></div><span class="pill">DEMO · SIMULATED DATA</span></header>
+<div class="layout">
+<section class="panel" aria-labelledby="inputs-title">
+<h2 id="inputs-title">Configure your scenario</h2><p class="hint">Select a season and crop, then adjust the simulated farm conditions.</p>
+<div class="field"><label for="season">Growing season</label><select id="season"><option value="Kharif">Kharif · Monsoon</option><option value="Rabi">Rabi · Winter</option><option value="Zaid">Zaid · Summer</option></select></div>
+<div class="field"><label for="crop">Crop</label><select id="crop"><option value="rice">Rice</option><option value="maize">Maize</option><option value="cotton">Cotton</option><option value="wheat">Wheat</option><option value="mustard">Mustard</option><option value="chickpea">Chickpea</option><option value="mung">Mung bean</option><option value="watermelon">Watermelon</option><option value="sugarcane">Sugarcane</option></select></div>
+<div class="two"><div class="field"><label for="stage">Growth stage</label><select id="stage"><option value="0.75">Seedling</option><option value="1" selected>Vegetative</option><option value="1.15">Flowering</option><option value="0.8">Maturity</option></select></div><div class="field"><label for="area">Farm area <small>acres</small></label><input id="area" type="number" min="0.1" max="10000" step="0.1" value="2"></div></div>
+<div class="field"><label for="temp">Temperature <span id="tempVal">28°C</span></label><input id="temp" type="range" min="5" max="45" value="28"><div class="range-meta"><span>5°C</span><span>45°C</span></div></div>
+<div class="field"><label for="moisture">Soil moisture <span id="moistureVal">45%</span></label><input id="moisture" type="range" min="0" max="100" value="45"><div class="range-meta"><span>Dry</span><span>Saturated</span></div></div>
+<div class="field"><label for="rain">Rainfall probability <span id="rainVal">40%</span></label><input id="rain" type="range" min="0" max="100" value="40"><div class="range-meta"><span>0%</span><span>100%</span></div></div>
+<div class="two"><div class="field"><label for="humidity">Humidity <small>%</small></label><input id="humidity" type="number" min="0" max="100" value="60"></div><div class="field"><label for="ph">Soil pH</label><input id="ph" type="number" min="3" max="10" step="0.1" value="6.5"></div></div>
+<button type="button" class="btn" id="simulate">Run Simulation ↗</button><p class="note">Press the button after changing inputs to refresh the results. This demo uses illustrative rules, not live sensors or a validated ML model.</p>
+</section>
+<section class="panel" id="resultsPanel" aria-labelledby="results-title" aria-live="polite">
+<div class="result-head"><div><h2 id="results-title">Simulation results</h2><p id="scenarioLabel">Kharif · Rice · Vegetative stage</p></div><span id="status" class="status">Moderate risk</span></div>
+<div class="metrics">
+<div class="metric green"><div class="label">Estimated crop health</div><div class="value" id="health">—</div><div class="desc" id="healthDesc">Run a simulation to calculate</div></div>
+<div class="metric"><div class="label">Water need estimate</div><div class="value" id="water">—</div><div class="desc">Approximate crop water demand</div></div>
+<div class="metric"><div class="label">Irrigation suggestion</div><div class="value" id="irrigation">—</div><div class="desc" id="irrigationDesc">Based on moisture and rainfall chance</div></div>
+<div class="metric"><div class="label">Stress risk</div><div class="value" id="risk">—</div><div class="desc">Rule-based simulated risk score</div></div>
+</div>
+<div class="barbox"><div class="bar-title"><span>Crop health index</span><span id="healthPct">—</span></div><div class="track"><div class="fill" id="healthBar"></div></div><div class="bar-title" style="margin-top:15px"><span>Soil moisture vs target</span><span id="moistureTarget">—</span></div><div class="track"><div class="fill water" id="moistureBar"></div></div><div class="bar-title" style="margin-top:15px"><span>Environmental stress</span><span id="stressPct">—</span></div><div class="track"><div class="fill risk" id="riskBar"></div></div></div>
+<div class="recommend"><h3>Recommended next steps</h3><ul id="recommendations"><li>Adjust the conditions and click Run Simulation.</li></ul></div>
+<div class="scenario"><h3>Scenario summary</h3><p id="summary" class="hint" style="margin:0">Your simulation results will appear here.</p></div>
+<p class="foot">Water demand is a rough illustrative estimate in mm/day, not a measured requirement. Verify local agricultural guidance before making crop-management decisions.</p>
+</section>
+</div>
+</main>
+<script>
+"use strict";
+const crops={
+ rice:{name:"Rice",seasons:["Kharif"],temp:28,moisture:70,humidity:75,ph:6.2,water:7},
+ maize:{name:"Maize",seasons:["Kharif","Rabi"],temp:25,moisture:55,humidity:60,ph:6.3,water:5},
+ cotton:{name:"Cotton",seasons:["Kharif"],temp:30,moisture:45,humidity:50,ph:6.8,water:5.5},
+ wheat:{name:"Wheat",seasons:["Rabi"],temp:20,moisture:50,humidity:50,ph:6.7,water:4.5},
+ mustard:{name:"Mustard",seasons:["Rabi"],temp:18,moisture:40,humidity:45,ph:6.5,water:3.5},
+ chickpea:{name:"Chickpea",seasons:["Rabi"],temp:22,moisture:35,humidity:45,ph:7,water:3},
+ mung:{name:"Mung bean",seasons:["Kharif","Zaid"],temp:28,moisture:45,humidity:55,ph:6.5,water:4},
+ watermelon:{name:"Watermelon",seasons:["Zaid"],temp:30,moisture:50,humidity:50,ph:6.2,water:5},
+ sugarcane:{name:"Sugarcane",seasons:["Kharif","Zaid"],temp:29,moisture:65,humidity:65,ph:6.5,water:7.5}
+};
+const $=id=>document.getElementById(id);
+function clamp(n,min,max){return Math.max(min,Math.min(max,n))}
+function updateLabels(){$("tempVal").textContent=$("temp").value+"°C";$("moistureVal").textContent=$("moisture").value+"%";$("rainVal").textContent=$("rain").value+"%"}
+function updateCropOptions(){
+ const season=$("season").value,old=$("crop").value;
+ const options=Object.entries(crops).filter(([,c])=>c.seasons.includes(season));
+ $("crop").innerHTML=options.map(([key,c])=>`<option value="${key}">${c.name}</option>`).join("");
+ if(options.some(([key])=>key===old))$("crop").value=old;
+}
+function simulate(){
+ try{
+  const crop=crops[$("crop").value];if(!crop)throw new Error("Please select a crop.");
+  const season=$("season").value,temp=+$("temp").value,moisture=+$("moisture").value,rain=+$("rain").value,humidity=clamp(+$("humidity").value||0,0,100),ph=clamp(+$("ph").value||6.5,3,10),stage=+$("stage").value,area=Math.max(.1,+$("area").value||.1);
+  const tempPenalty=Math.min(32,Math.abs(temp-crop.temp)*1.7),moisturePenalty=Math.min(32,Math.abs(moisture-crop.moisture)*.55),phPenalty=Math.min(18,Math.abs(ph-crop.ph)*7),humidityPenalty=Math.min(10,Math.abs(humidity-crop.humidity)*.12),seasonPenalty=crop.seasons.includes(season)?0:12,waterlogging=(moisture>88&&crop.name!=="Rice")?8:0,drought=moisture<22?10:0;
+  const health=Math.round(clamp(100-tempPenalty-moisturePenalty-phPenalty-humidityPenalty-seasonPenalty-waterlogging-drought,0,100)),risk=100-health,water=Math.max(1,crop.water*stage*(1+Math.max(0,temp-25)*.018)*(moisture<35?1.12:.95));
+  const needIrrigation=moisture<crop.moisture-12&&rain<65,irrigation=needIrrigation?"Consider irrigation":rain>=65?"Wait for rainfall update":"Monitor",status=$("status");
+  $("scenarioLabel").textContent=`${season} · ${crop.name} · ${$("stage").selectedOptions[0].text}`;
+  $("health").textContent=health+"/100";$("healthDesc").textContent=health>=80?"Favourable simulated condition":health>=60?"Fair; monitor stress factors":"Stress indicators detected";
+  $("water").textContent=water.toFixed(1)+" mm/day";$("irrigation").textContent=irrigation;$("irrigationDesc").textContent=needIrrigation?"Moisture is below the illustrative crop target.":"Recheck soil moisture and forecast before watering.";
+  $("risk").textContent=risk+"%";status.textContent=risk<20?"Low risk":risk<40?"Moderate risk":"High risk";status.className="status "+(risk<20?"good":risk>=40?"bad":"");
+  $("healthPct").textContent=health+"%";$("healthBar").style.width=health+"%";$("moistureTarget").textContent=moisture+"% / "+crop.moisture+"%";$("moistureBar").style.width=moisture+"%";$("stressPct").textContent=risk+"%";$("riskBar").style.width=risk+"%";
+  const rec=[];
+  if(tempPenalty>12)rec.push(`Temperature differs from the illustrative ${crop.name} target (${crop.temp}°C); check local crop advisories.`);
+  if(moisture<crop.moisture-12&&rain<65)rec.push("Soil moisture is low relative to the example target; assess the field and forecast before irrigating.");
+  if(moisture>crop.moisture+20)rec.push("Soil moisture is above the example target; check drainage and avoid unnecessary watering.");
+  if(rain>=65)rec.push("Rainfall probability is high in this scenario; reassess irrigation when the forecast updates.");
+  if(phPenalty>7)rec.push(`Soil pH differs from the illustrative target (${crop.ph}); consider a soil test before amendments.`);
+  if(!crop.seasons.includes(season))rec.push(`${crop.name} is not listed for ${season} in this demo; verify local planting calendars.`);
+  if(!rec.length)rec.push("Conditions are close to the illustrative crop targets. Continue monitoring field and sensor readings.");
+  rec.push("Use field observations and local agricultural advice before taking action.");
+  $("recommendations").innerHTML=rec.map(item=>`<li>${item}</li>`).join("");
+  $("summary").textContent=`For ${area.toFixed(1)} acre(s), this ${season} ${crop.name.toLowerCase()} scenario has a simulated health score of ${health}/100 and stress score of ${risk}%. These values come from simple demonstration rules, not live sensor data or a trained prediction model.`;
+  $("resultsPanel").classList.remove("flash");void $("resultsPanel").offsetWidth;$("resultsPanel").classList.add("flash");
+ }catch(err){console.error("Simulation error:",err);alert("Simulation could not run: "+err.message);}
+}
+$("simulate").addEventListener("click",simulate);
+["temp","moisture","rain"].forEach(id=>$(id).addEventListener("input",updateLabels));
+$("season").addEventListener("change",()=>{updateCropOptions();});
+updateLabels();updateCropOptions();simulate();
+</script>
+</body>
+</html>
